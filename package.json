@@ -1,0 +1,29 @@
+{
+  "name": "flock-scaler",
+  "version": "1.0.0",
+  "description": "Flock HAProxy scaler",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "flock-scaler": "./bin/flock-scaler"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:palmerabollo/flock-scaler.git"
+  },
+  "keywords": [
+    "flock",
+    "haproxy",
+    "autoscaling"
+  ],
+  "author": "Guido García",
+  "license": "MIT",
+  "dependencies": {
+    "csv-stream": "^0.1.3",
+    "marathon.node": "^0.0.1",
+    "request": "^2.51.0",
+    "underscore": "^1.7.0"
+  }
+}
