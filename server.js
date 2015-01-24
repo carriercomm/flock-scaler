@@ -16,7 +16,7 @@ var scaleDown = function scaleDown(appName, callback) {
         var currentInstances = res.app.instances;
         var instances = currentInstances > 1 ? currentInstances - 1 : 0;
         client.app(appName).update({instances: instances}).then(function onscale(res) {
-            console.log(res);
+            console.log('scale down response', res);
             callback();
         });
     });
@@ -27,7 +27,7 @@ var scaleUp = function scaleUp(appName, callback) {
         var currentInstances = res.app.instances;
         var instances = currentInstancs + 1;
         client.app(appName).update({instances: instances}).then(function onscale(res) {
-            console.log(res);
+            console.log('scale up response', res);
             callback();
         });
     });
@@ -58,13 +58,13 @@ var getHaproxyStats = function getHaproxyStats(callback) {
 };
 
 getHaproxyStats(function onstats(err, stats) {
-    var filterFlockInstances = function isNotBackupServer(row) {
-        return row['# pxname'].indexOf('flock-backup') === -1 &&
-               row['svname'].indexOf('server_backup') === -1 &&
-               row['svname'].indexOf('server_') === 0
+    var filterFlockInstances = function isFlockServer(server) {
+        return server['# pxname'].indexOf('flock-backup') === -1 &&
+               server['svname'].indexOf('server_backup') === -1 &&
+               server['svname'].indexOf('server_') === 0
     };
 
-    var FIELDS = ['# pxname', 'lastsess', 'qcur', 'qmax', 'scur', 'smax', 'status', 'svname', 'qtime', 'ctime', 'rtime'];
+    var FIELDS = ['# pxname', 'lastsess', 'qcur', 'qmax', 'scur', 'smax', 'status', 'svname', 'qtime', 'ctime', 'rtime', 'lastchg'];
     var servers = _.chain(stats)
         .filter(filterFlockInstances)
         .map(function (row) { return _.pick(row, FIELDS) })
@@ -73,7 +73,7 @@ getHaproxyStats(function onstats(err, stats) {
     console.log('current servers', servers);
 
     var filterIdleServers = function isIdle(server) {
-        return server.lastsess > 60;
+        return server.lastsess > 50 || (server.lastsess == -1 && server.lastchg > 50);
     };
 
     var idleServers = _.filter(servers, filterIdleServers);
