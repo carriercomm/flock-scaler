@@ -1,11 +1,16 @@
 var Marathon = require('marathon.node'),
     request = require('request'),
     csv = require('csv-stream'),
+    url = require('url'),
     _ = require('underscore');
 
 // TODO read from consul
-var MARATHON_API = 'http://10.141.141.10:8080';
-var HAPROXY_STATS_CSV = 'http://10.141.141.10:9090/;csv';
+var MARATHON_API = process.env.MARATHON_API || 'http://10.141.141.10:8080';
+
+// XXX
+// TODO use host when DNS is available
+var HAPROXY_HOST = url.parse(MARATHON_API).hostname;
+var HAPROXY_STATS_CSV = 'http://' + HAPROXY_HOST + ':9090/haproxy?stats;csv';
 var HAPROXY_USER = 'admin';
 var HAPROXY_PASS = 'admin';
 
@@ -59,9 +64,12 @@ var getHaproxyStats = function getHaproxyStats(callback) {
 
 getHaproxyStats(function onstats(err, stats) {
     var filterFlockInstances = function isFlockServer(server) {
+        // TODO improve algorithm
         return server['# pxname'].indexOf('flock-backup') === -1 &&
+               server['# pxname'].indexOf('flock') === 0 &&
                server['svname'].indexOf('server_backup') === -1 &&
-               server['svname'].indexOf('server_') === 0
+               server['svname'].indexOf('BACKEND') === 0;
+               // server['svname'].indexOf('server_') === 0;
     };
 
     var FIELDS = ['# pxname', 'lastsess', 'qcur', 'qmax', 'scur', 'smax', 'status', 'svname', 'qtime', 'ctime', 'rtime', 'lastchg'];
